@@ -8,7 +8,7 @@ from dlt.sources.rest_api import (
 
 
 @dlt.source
-def jira_source(pat_token: str = dlt.secrets.value, base_url: str = dlt.secrets.value):
+def jira_source(pat_token: str = dlt.secrets.value, base_url: str = dlt.secrets.value, jql_query: str = dlt.secrets.value):
     config: RESTAPIConfig = {
         "client": {
             "base_url": base_url,
@@ -20,19 +20,30 @@ def jira_source(pat_token: str = dlt.secrets.value, base_url: str = dlt.secrets.
                 "Accept": "application/json",
             },
         },
+        "resource_defaults": {
+            "primary_key": "id",
+            "write_disposition": "merge",
+        },
         "resources": [
             {
-                "name": "application_roles",
+                "name": "issues",
                 "endpoint": {
-                    "path": "/rest/api/2/applicationrole",
+                    "path": "/rest/api/2/search",
                     "method": "GET",
-                },
-            },
-            {
-                "name": "avatars",
-                "endpoint": {
-                    "path": "/rest/api/2/avatar/type/system",
-                    "method": "GET",
+                    "params": {
+                        "jql": jql_query,
+                        "maxResults": 50,
+                        "startAt": "{paginator.offset}",
+                    },
+                    "data_selector": "issues",
+                    "paginator": {
+                        "type": "offset",
+                        "offset": 0,
+                        "limit": 50,
+                        "offset_param": "startAt",
+                        "limit_param": "maxResults",
+                        "total_path": "total",
+                    },
                 },
             },
         ],
