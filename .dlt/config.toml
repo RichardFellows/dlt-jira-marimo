@@ -1,6 +1,18 @@
 # put your configuration values here
 
 [runtime]
-log_level="WARNING"  # the system log level of dlt
-# use the dlthub_telemetry setting to enable/disable anonymous usage data reporting, see https://dlthub.com/docs/reference/telemetry
+log_level="WARNING"
 dlthub_telemetry = true
+
+[sources.jira_source]
+# ── SAFe custom field IDs ────────────────────────────────────────────────────
+# Find your field IDs at: https://your-domain.atlassian.net/rest/api/2/field
+# or by expanding "Field discovery" in pi-burndown.py after a first pipeline run.
+#
+# The 'fields' secret (in .dlt/secrets.toml) must also include these field IDs
+# so Jira returns them in the issue payload, e.g.:
+#   fields = "summary,status,issuetype,story_points,customfield_10020,customfield_XXXXX,customfield_YYYYY,parent,changelog"
+
+pi_field_id = "customfield_XXXXX"     # "planning increment" — replace XXXXX
+team_field_id = "customfield_YYYYY"   # "GFED team" — replace YYYYY
+sprint_field_id = "customfield_10020" # sprint field (10020 is standard for Jira DC/Cloud classic)
