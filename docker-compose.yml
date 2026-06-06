@@ -1,0 +1,39 @@
+# Local stack: ingestion (refresh) and presentation (dashboard) as separate
+# services sharing one DuckDB volume — so the refresh schedule is decoupled from
+# querying/display.
+#
+# Secrets/config come from the host environment (see .env.example). The dlt
+# section-env convention SOURCES__JIRA_AGILE__<KEY> maps onto [sources.jira_agile].
+
+services:
+  # ----- Ingestion: writes DuckDB; re-runs once a day --------------------
+  refresh:
+    build: .
+    command: sh -c "while true; do python jira_agile_pipeline.py; echo 'sleeping 24h'; sleep 86400; done"
+    environment:
+      DUCKDB_PATH: /data/jira.duckdb
+      SOURCES__JIRA_AGILE__PAT_TOKEN: ${JIRA_PAT_TOKEN}
+      SOURCES__JIRA_AGILE__BASE_URL: ${JIRA_BASE_URL}
+    volumes:
+      - jira-data:/data
+      # Mount config (board ids, custom-field ids, PI pattern). Secrets come via env above.
+      - ./.dlt/config.toml:/app/.dlt/config.toml:ro
+    restart: unless-stopped
+
+  # ----- Presentation: reads DuckDB read-only; always-on web app ---------
+  dashboard:
+    build: .
+    command: marimo run pi_dashboard.py --host 0.0.0.0 --port 2718 --no-token
+    environment:
+      DUCKDB_PATH: /data/jira.duckdb
+    ports:
+      - "2718:2718"
+    volumes:
+      - jira-data:/data
+      - ./.dlt/config.toml:/app/.dlt/config.toml:ro
+    depends_on:
+      - refresh
+    restart: unless-stopped
+
+volumes:
+  jira-data:

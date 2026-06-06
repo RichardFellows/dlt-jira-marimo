@@ -4,3 +4,18 @@
 log_level="WARNING"  # the system log level of dlt
 # use the dlthub_telemetry setting to enable/disable anonymous usage data reporting, see https://dlthub.com/docs/reference/telemetry
 dlthub_telemetry = true
+
+# Non-secret configuration for the Jira Agile ingestion (jira_agile_pipeline.py).
+# Secrets (pat_token, base_url) live in .dlt/secrets.toml — see secrets.toml.example.
+[sources.jira_agile]
+# The scrum boards for your two teams (find via GET /rest/agile/1.0/board).
+board_ids = [123, 456]
+# Custom-field ids vary per Jira instance — confirm against your API (see README).
+story_point_field = "customfield_10016"   # "Story point estimate" on many instances
+sprint_field = "customfield_10020"        # sprint membership array
+epic_link_field = "customfield_10014"     # classic Epic Link (team-managed uses parent)
+# Base set of issue fields to fetch; the custom fields above are appended automatically.
+issue_fields = "summary,status,issuetype,assignee,resolutiondate,fixVersions,parent"
+# How a "PI" is defined for the dashboard. Default: a fixVersion name prefix.
+pi_strategy = "fixversion"                 # fixversion | sprint_prefix | date_range
+pi_pattern = "PI-"

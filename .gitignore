@@ -8,3 +8,5 @@ secrets.toml
 # ignore duckdb
 *.duckdb
 *.wal
+# ignore marimo session/export artifacts
+__marimo__/
